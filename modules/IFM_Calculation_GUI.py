@@ -5,53 +5,60 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.cm as cm
+from scipy.spatial.transform import Rotation as R
 
 import os
 
 
-def check(f_path):
-    file_names = ['X1', 'X2', 'Y1', 'Y2', 'Z1', 'Z2',
-                  'DX1', 'DX2', 'DY1', 'DY2', 'DZ1', 'DZ2']
-    for file_name in file_names:
-        file_path = os.path.join(f_path, file_name + '.txt')
-        if not os.path.exists(file_path):
-            return f"Error: File {file_name}.txt not found."
-        try:
-            data = pd.read_csv(file_path, sep='\t')
-            if len(data.columns) != 5:
-                return f"Error: File {file_name}.txt must have 5 columns."
-        except Exception as e:
-            return f"Error: Cannot read file {file_name}.txt. {str(e)}"
-    return "OK"
+def import_data(f_path, file_name):
+    """
+    Import data from a CSV file.
+
+    Args:
+        f_path (str): The path to the directory containing the CSV file.
+        file_name (str): The name of the CSV file (without the extension).
+
+    Returns:
+        tuple: A tuple containing a status message and the imported data as a pandas DataFrame.
+            - If the file is not found, the status message will be an error message and the DataFrame will be empty.
+            - If there is an error reading the file, the status message will be an error message and the DataFrame will be empty.
+            - If the file does not have the expected columns, the status message will be an error message and the DataFrame will be empty.
+            - If the file is successfully imported, the status message will be 'Success' and the DataFrame will contain the imported data.
+    """
+    file_path = os.path.join(f_path, file_name + '.csv')
+    if not os.path.exists(file_path):
+        return f"Error: File {file_name}.csv not found.", pd.DataFrame()
+    try:
+        data = pd.read_csv(file_path)
+    except Exception as e:
+        return f"Error: Cannot read file {file_name}.csv. {str(e)}", pd.DataFrame()
+    expected_columns = ['Node number', 'LOCX', 'LOCY',
+                        'LOCZ', 'DEF_LOCX', 'DEF_LOCY', 'DEF_LOCZ']
+    if not data.columns.equals(pd.Index(expected_columns)):
+        return f"Error: File {file_name}.csv must have columns {expected_columns}.", pd.DataFrame()
+    return 'Success', data
 
 
-def import_data(f_path, i):
-    data_series = pd.DataFrame()
-    file_names = ['X', 'Y', 'Z', 'DX', 'DY', 'DZ']
-    for file_name in file_names:
-        file = f_path + '/' + file_name + i + '.txt'
-        try:
-            if file_name == 'X':
-                data = pd.read_csv(file, sep='\t', usecols=[0, 4])
-            else:
-                data = pd.read_csv(file, sep='\t', usecols=[4])
-            data_series = pd.concat(
-                [data_series, data], axis=1, ignore_index=True)
-        except (FileNotFoundError, IOError):
-            error_msg = f"Error: Cannot read file {file}."
-            return error_msg
-    data_series.columns = ['Node number', 'LOCX', 'LOCY',
-                           'LOCZ', 'DEF_LOCX', 'DEF_LOCY', 'DEF_LOCZ']
-    return data_series
+def pairing(dfa, dfb):
+    """
+    Pair nodes from two dataframes based on their coordinates.
 
+    Args:
+        dfa (pd.DataFrame): First dataframe containing node information.
+        dfb (pd.DataFrame): Second dataframe containing node information.
 
-def pairing(dfa, dfb):  # Pairing nodes
+    Returns:
+        tuple: A tuple containing the matched dataframe and a flag indicating if the dataframes were reversed.
+    """
     if len(dfa) <= len(dfb):
         df1 = dfa
         df2 = dfb
+        reverse = False
     else:
         df1 = dfb
         df2 = dfa
+        reverse = True
+
     p1 = np.array(df1.loc[:, ['LOCX', 'LOCY', 'LOCZ']])
     p2 = np.array(df2.loc[:, ['LOCX', 'LOCY', 'LOCZ']])
     dist = np.sqrt(((p1[:, None, :] - p2) ** 2).sum(axis=2))
@@ -63,24 +70,50 @@ def pairing(dfa, dfb):  # Pairing nodes
                           'LOCX2', 'LOCY2', 'LOCZ2', 'DEF_LOCX2', 'DEF_LOCY2', 'DEF_LOCZ2', 'distance']
     print('Nodes pairing success! \n')
     print(df_matched)
-    return df_matched
+    return df_matched, reverse
 
 
-def IFM_Calculation(df_matched):  # Calculate IFM
+def IFM_Calculation(df_matched):
+    """
+    Calculate the Integrated Fracture Mechanics (IFM) using displacement and detachment.
+
+    Args:
+        df_matched (DataFrame): A pandas DataFrame containing matched data.
+
+    Returns:
+        DataFrame: A new DataFrame with calculated values including Displacement, Detachment, and IFM.
+    """
+    # Calculate displacement between deformed and original locations in X and Y directions
     displacement = np.sqrt(((df_matched['DEF_LOCX1'] - df_matched['DEF_LOCX2']) - (df_matched['LOCX1'] - df_matched['LOCX2'])) ** 2 + (
         (df_matched['DEF_LOCY1'] - df_matched['DEF_LOCY2']) - (df_matched['LOCY1'] - df_matched['LOCY2'])) ** 2)
+    # Calculate detachment between deformed and original locations in Z direction
     detachment = np.sqrt(((df_matched['DEF_LOCZ1'] - df_matched['DEF_LOCZ2']) - (
         df_matched['LOCZ1'] - df_matched['LOCZ2'])) ** 2)
+    # Calculate IFM (Integrated Fracture Mechanics) using displacement and detachment
     IFM = np.sqrt(displacement ** 2 + detachment ** 2)
+    # Create a new dataframe with calculated values
     output = df_matched.assign(
         Displacement=displacement, Detachment=detachment, IFM=IFM)
+    # Rename the columns of the output dataframe
     output.columns = ['Node Number1', 'X Location1 (mm)', 'Y Location1 (mm)', 'Z Location1 (mm)', 'Deformed X Location1 (mm)', 'Deformed Y Location1 (mm)', 'Deformed Z Location1 (mm)', 'Node Number2', 'X Location2 (mm)',
-                      'Y Location2 (mm)', 'Z Location2 (mm)', 'Deformed X Location2 (mm)', 'Deformed Y Location2 (mm)', 'Deformed Z Location2 (mm)', 'Distance (mm)', 'Displacement (mm)', 'Detachment (mm)', 'IFM (mm)']
+                      'Y Location2 (mm)', 'Z Location2 (mm)', 'Deformed X Location2 (mm)', 'Deformed Y Location2 (mm)', 'Deformed Z Location2 (mm)', 'Distance (mm)', 'Sliding distance (mm)', 'Gap distance (mm)', 'IFM distance (mm)']
+    # Print the IFM output dataframe
     print('IFM output \n', output)
     return output
 
 
-def calculate_extreme_values(df_matched, accu):  # Calculate extreme nodes
+def calculate_extreme_values(df_matched, accu):
+    """
+    Calculate the extreme values of the given DataFrame based on the specified accuracy.
+
+    Args:
+        df_matched (DataFrame): The DataFrame containing the data to be analyzed.
+        accu (float): The accuracy threshold for selecting extreme values.
+
+    Returns:
+        DataFrame: A DataFrame containing the extreme nodes based on the given accuracy.
+
+    """
     x = df_matched.query('abs(LOCX1) < @accu')
     y = df_matched.query('abs(LOCY1) < @accu')
     df_max = pd.concat([x.nlargest(1, 'LOCY1'), x.nsmallest(
@@ -89,7 +122,21 @@ def calculate_extreme_values(df_matched, accu):  # Calculate extreme nodes
     return df_max
 
 
-def calculate_angle(n1, n2):  # Calculate angle using extreme nodes
+def vector_angle(n1, n2, reverse=False):
+    """
+    Calculate the angle between two vectors in degrees.
+
+    Parameters:
+    n1 (array-like): The first vector.
+    n2 (array-like): The second vector.
+    reverse (bool, optional): If True, reverse the order of the normal vectors. Defaults to False.
+
+    Returns:
+    float: The angle between the two vectors in degrees.
+    """
+    if reverse:  # Reverse the order of the normal vectors if paired nodes change the order
+        n1, n2 = n2, n1
+
     dot_1 = np.linalg.norm(n1)
     dot_2 = np.linalg.norm(n2)
     cos_x = np.dot(n1, n2) / (dot_1 * dot_2)
@@ -103,7 +150,25 @@ def calculate_angle(n1, n2):  # Calculate angle using extreme nodes
     return angle
 
 
-def calculate_normal(df):  # Calculate normal vector
+def calculate_angle(df_max, row1, row2, col1, col2, reverse=False):
+    angle_0 = vector_angle(np.array((df_max.iat[row1, col1] - df_max.iat[row2, col1], df_max.iat[row1, col2] - df_max.iat[row2, col2])),
+                           np.array((df_max.iat[row1, col1+7] - df_max.iat[row2, col1+7], df_max.iat[row1, col2+7] - df_max.iat[row2, col2+7])), reverse)
+    angle_1 = vector_angle(np.array((df_max.iat[row1, col1+3] - df_max.iat[row2, col1+3], df_max.iat[row1, col2+3] - df_max.iat[row2, col2+3])),
+                           np.array((df_max.iat[row1, col1+10] - df_max.iat[row2, col1+10], df_max.iat[row1, col2+10] - df_max.iat[row2, col2+10])), reverse)
+    return angle_1 - angle_0
+
+
+def calculate_normal(df):
+    """
+    Calculate the normal vector of a plane using least squares method.
+
+    Args:
+        df (pandas.DataFrame): DataFrame containing the coordinates of the plane.
+
+    Returns:
+        numpy.ndarray: The normal vector of the plane.
+
+    """
     x = df.loc[:, 'DEF_LOCX'].values
     y = df.loc[:, 'DEF_LOCY'].values
     z = df.loc[:, 'DEF_LOCZ'].values
@@ -114,41 +179,112 @@ def calculate_normal(df):  # Calculate normal vector
     return normal
 
 
-# Calculate angle between two normal vectors
 def calculate_theta(normal_a, normal_b):
+    """
+    Calculate the angle between two normal vectors.
+
+    Parameters:
+    normal_a (numpy.ndarray): The first normal vector.
+    normal_b (numpy.ndarray): The second normal vector.
+
+    Returns:
+    numpy.ndarray: An array containing the angle between the two normal vectors.
+    """
     cos_theta = np.dot(normal_a, normal_b) / \
         (np.linalg.norm(normal_a) * np.linalg.norm(normal_b))
     theta = np.arccos(cos_theta)
     return np.array([theta])
 
 
-def calculate_rotation_matrix(normal_a, normal_b):  # Calculate rotation matrix
-    v = np.cross(normal_a, normal_b)
-    s = np.linalg.norm(v)
-    c = np.dot(normal_a, normal_b)
-    vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
-    R = np.eye(3) + vx + np.dot(vx, vx) * (1 - c) / (s ** 2)
-    print("Rotation Matrix = \n", R)
-    return R
+def calculate_rotation_matrix(points_initial, points_transformed):
+    """
+    Calculate the rotation matrix based on the given initial points and transformed points.
+
+    Args:
+        points_global (numpy.ndarray): Array of initial points.
+        points_transformed (numpy.ndarray): Array of transformed points.
+
+    Returns:
+        numpy.ndarray: Rotation matrix.
+    """
+    x_initial = points_initial[1] - points_initial[0]
+    x_initial /= np.linalg.norm(x_initial)
+
+    z_initial = np.cross(x_initial, points_initial[3] - points_initial[2])
+    z_initial /= np.linalg.norm(z_initial)
+
+    y_initial = np.cross(z_initial, x_initial)
+
+    x_transformed = points_transformed[1] - points_transformed[0]
+    x_transformed /= np.linalg.norm(x_transformed)
+
+    z_transformed = np.cross(
+        x_transformed, points_transformed[3] - points_transformed[2])
+    z_transformed /= np.linalg.norm(z_transformed)
+
+    if np.dot(z_transformed, z_initial) < 0:
+        z_transformed = -z_transformed
+
+    y_transformed = np.cross(z_transformed, x_transformed)
+
+    rotation_matrix_before = np.column_stack((x_initial, y_initial, z_initial))
+    rotation_matrix_after = np.column_stack(
+        (x_transformed, y_transformed, z_transformed))
+
+    rotation_matrix = rotation_matrix_after @ np.linalg.inv(
+        rotation_matrix_before)
+
+    return rotation_matrix
 
 
-def calculate_eulerangles(R):  # Calculate Euler angles
-    sy = np.sqrt(R[0, 0] ** 2 + R[1, 0] ** 2)
-    singular = sy < 1e-6
-    if not singular:
-        x = np.arctan2(R[2, 1], R[2, 2])
-        y = np.arctan2(-R[2, 0], sy)
-        z = np.arctan2(R[1, 0], R[0, 0])
-    else:
-        x = np.arctan2(-R[1, 2], R[1, 1])
-        y = np.arctan2(-R[2, 0], sy)
-        z = 0
-    Eulerangles = np.degrees(np.array([x, y, z]))
-    print('Eulerangles', Eulerangles)
-    return Eulerangles
+def calculate_matrix_euler(df_max, reverse):
+    """
+    Calculate the relative rotation matrix and Euler angles between two sets of points.
+
+    Args:
+        df_max (pandas.DataFrame): DataFrame containing the maximum values.
+        reverse (bool): Flag indicating whether to reverse the calculation.
+
+    Returns:
+        tuple: A tuple containing the relative rotation matrix and Euler angles.
+
+    """
+    points_1 = df_max.iloc[:4, 1:4].values
+    points_2 = df_max.iloc[:4, 8:11].values
+    def_points_1 = df_max.iloc[:4, 4:7].values
+    def_points_2 = df_max.iloc[:4, 11:14].values
+
+    rotation_matrix_1 = calculate_rotation_matrix(points_1, points_2)
+    rotation_matrix_2 = calculate_rotation_matrix(def_points_1, def_points_2)
+    relative_rotation_matrix = rotation_matrix_2 @ np.linalg.inv(
+        rotation_matrix_1)
+    rotation = R.from_matrix(relative_rotation_matrix)
+    Eulerangles = rotation.as_euler('xyz', degrees=True)
+    Eulerangles = -Eulerangles
+    return relative_rotation_matrix, Eulerangles
 
 
-def export(ExportFolder, ExportName, output, row3, angle_x, angle_y, angle_z1, theta, Eulerangles, IFM_summary, Gap_summary, SD_summary):  # Export results
+def export(ExportFolder, ExportName, output, row3, angle_x, angle_y, angle_z1, theta, Eulerangles, IFM_summary, Gap_summary, SD_summary):
+    """
+    Export the results to a CSV file.
+
+    Parameters:
+    - ExportFolder (str): The folder path where the CSV file will be exported.
+    - ExportName (str): The name of the CSV file.
+    - output (pandas.DataFrame): The data to be exported.
+    - row3 (int): The number of nodes.
+    - angle_x (float): The angle in the X-axis.
+    - angle_y (float): The angle in the Y-axis.
+    - angle_z1 (float): The rotation angle in the Z-axis.
+    - theta (float): The theta value.
+    - Eulerangles (float): The Euler angles.
+    - IFM_summary (dict): The summary statistics for IFM.
+    - Gap_summary (dict): The summary statistics for Gap.
+    - SD_summary (dict): The summary statistics for SD.
+
+    Returns:
+    - str: 'Success' if the export is successful, otherwise an exception message.
+    """
     try:
         file_name = ExportName + '.csv'
         Summary_name = 'Output Summary_' + file_name
@@ -177,7 +313,18 @@ def export(ExportFolder, ExportName, output, row3, angle_x, angle_y, angle_z1, t
         return e
 
 
-def plot(data, target):  # Plot 3D scatter plot
+def plot(data, target, reverse):
+    """
+    Plot a 3D scatter plot.
+
+    Args:
+        data (pandas.DataFrame): The data containing the coordinates and target values.
+        target (str): The column name of the target values.
+        reverse (bool): If True, reverse the order of the scatter plots.
+
+    Returns:
+        matplotlib.figure.Figure: The generated figure.
+    """
     x1 = data.loc[:, 'Deformed X Location1 (mm)']
     y1 = data.loc[:, 'Deformed Y Location1 (mm)']
     z1 = data.loc[:, 'Deformed Z Location1 (mm)']
@@ -189,10 +336,12 @@ def plot(data, target):  # Plot 3D scatter plot
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     cmap = cm.get_cmap('turbo')
-    scatter1 = ax.scatter(x1, y1, z1, c=c, s=40, alpha=1, cmap=cmap)
-    scatter2 = ax.scatter(x2, y2, z2, s=10, alpha=0.5)
-    # tri1 = ax.plot_trisurf(x1, y1, z1, edgecolor='grey',
-    #                        linewidth=0.2, antialiased=True, alpha=0.2)
+    if reverse:
+        scatter1 = ax.scatter(x1, y1, z1, c=c, s=40, alpha=1, cmap=cmap)
+        scatter2 = ax.scatter(x2, y2, z2, s=10, alpha=0.5)
+    else:
+        scatter1 = ax.scatter(x2, y2, z2, c=c, s=40, alpha=1, cmap=cmap)
+        scatter2 = ax.scatter(x1, y1, z1, s=10, alpha=0.5)
 
     vmin = c.min()
     vmax = c.max()

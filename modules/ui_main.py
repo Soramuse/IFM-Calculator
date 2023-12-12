@@ -2050,13 +2050,13 @@ class Ui_MainWindow(object):
 "li.checked::marker { content: \"\\2612\"; }\n"
 "</style></head><body style=\" font-family:'Segoe UI'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:600; color:#ff79c6;\">Ansys Interfragmentary Motion Calculator</span></p>\n"
-"<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#ffffff;\">An interface created using Python and PySide (support for PyQt), and core algorithm created"
-                        " by Sun Jun.</span></p>\n"
+"<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#ffffff;\">A Interfragmentary Motion Calculator for orthopedic, and core algorithm created by Sun Jun."
+                        "</span></p>\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#bd93f9;\">Created by: Sun Jun</span></p>\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:600; color:#ff79c6;\">Based on PyDracula</span></p>\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#ffffff;\">An interface created using Python and PySide (support for PyQt), and with colors based on the Dracula theme created by Zeno Rocha.</span></p></body></html>", None))
-        self.titleRightInfo.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:16pt; font-weight:700; color:#ffaa00;\">Ansys</span><span style=\" font-size:16pt; font-weight:700;\"> Interfragmentary Motion </span><span style=\" font-size:16pt; font-weight:700; color:#00aaff;\">Calculator</span></p></body></html>", None))
+        self.titleRightInfo.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:16pt; font-weight:700;\">Interfragmentary Motion </span><span style=\" font-size:16pt; font-weight:700; color:#00aaff;\">Calculator</span></p></body></html>", None))
 #if QT_CONFIG(tooltip)
         self.settingsTopBtn.setToolTip(QCoreApplication.translate("MainWindow", u"Settings", None))
 #endif // QT_CONFIG(tooltip)
@@ -2074,10 +2074,10 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.closeAppBtn.setText("")
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Welcome!", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\"><span style=\" font-weight:700; color:#ffaa00;\">ANSYS</span> Interfragmentary Motion <span style=\" color:#00aaff;\">Calculator</span></p><p align=\"center\"><span style=\" font-size:20pt;\">A </span><span style=\" font-size:20pt; color:#ffaa00;\">GUI</span><span style=\" font-size:20pt;\"> application based on </span><span style=\" font-size:20pt; color:#0055ff;\">Python</span><span style=\" font-size:20pt;\">.</span></p></body></html>", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p align=\"center\"><span style=\" color:#ffaa00;\">Interfragmentary Motion </span><span style=\" color:#00aaff;\">Calculator</span></p><p align=\"center\"><span style=\" font-size:20pt;\">A </span><span style=\" font-size:20pt; color:#ffaa00;\">GUI</span><span style=\" font-size:20pt;\"> application based on </span><span style=\" font-size:20pt; color:#0055ff;\">Python</span><span style=\" font-size:20pt;\">.</span></p></body></html>", None))
         self.label_6.setText("")
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:14pt;\">This software is designed to improve the deficiencies of Ansys in the field of orthopedic applications, please read the instructions before using it. </span></p><p><span style=\" font-size:14pt;\">The data folder used by this software needs to include the exported data of [</span><span style=\" font-size:14pt; color:#0055ff;\">X1,Y1,Z1,X2,Y2,Z2,DX1,DY1,DZ1,DX2,DY2,DZ2</span><span style=\" font-size:14pt;\">]. </span></p><p><span style=\" font-size:14pt;\">The software can be used with </span><span style=\" font-size:14pt; font-weight:700; text-decoration: underline;\">Ansys_export_ACT.py</span><span style=\" font-size:14pt;\">.The </span><span style=\" font-size:14pt; font-weight:700; text-decoration: underline;\">Ansys_export_ACT.py</span><span style=\" font-size:14pt;\"> script can easily help you export the data you need.</span></p></body></html>", None))
-        self.Input_label_2.setText(QCoreApplication.translate("MainWindow", u"FILE BOX", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><span style=\" font-size:14pt;\">This software is designed to improve the deficiencies of Ansys in the field of orthopedic applications, please read the instructions before using it. </span></p><p><span style=\" font-size:14pt;\">The data folder used by this software needs to include the exported data of</span></p><p><span style=\" font-size:14pt;\"> [</span><span style=\" font-size:14pt; color:#0055ff;\">data_series_1.csv and data_series_2.csv</span><span style=\" font-size:14pt;\">]. </span></p><p><span style=\" font-size:14pt;\">The software can be used with </span><span style=\" font-size:14pt; font-weight:700; text-decoration: underline;\">Ansys_export_ACT.py</span><span style=\" font-size:14pt;\">.The </span><span style=\" font-size:14pt; font-weight:700; text-decoration: underline;\">Ansys_export_ACT.py</span><span style=\" font-size:14pt;\"> script can easily help you export the data you need.</span></p></body></html>", None))
+        self.Input_label_2.setText(QCoreApplication.translate("MainWindow", u"File input", None))
         self.Input_btn.setText(QCoreApplication.translate("MainWindow", u"Open", None))
         self.Input_label.setText(QCoreApplication.translate("MainWindow", u"Select the working directory", None))
         self.Input_line.setText("")
@@ -2086,13 +2086,13 @@ class Ui_MainWindow(object):
         self.Calculate_btn.setText(QCoreApplication.translate("MainWindow", u"Calculate", None))
         self.Mesh_line.setText("")
         self.Mesh_line.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
-        self.Mesh_label.setText(QCoreApplication.translate("MainWindow", u"Mesh size is default accuracy", None))
+        self.Mesh_label.setText(QCoreApplication.translate("MainWindow", u"Mesh size is the preferred choice", None))
         self.Display_clear_btn.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.Display_save_btn.setText(QCoreApplication.translate("MainWindow", u"Save", None))
         self.Display_next_btn.setText(QCoreApplication.translate("MainWindow", u"Next", None))
-        self.Fig_IFM_btn.setText(QCoreApplication.translate("MainWindow", u"IFM", None))
+        self.Fig_IFM_btn.setText(QCoreApplication.translate("MainWindow", u"IFM distance", None))
         self.Fig_SD_btn.setText(QCoreApplication.translate("MainWindow", u"Sliding Distance", None))
-        self.Fig_Gap_btn.setText(QCoreApplication.translate("MainWindow", u"Gap", None))
+        self.Fig_Gap_btn.setText(QCoreApplication.translate("MainWindow", u"Gap distance", None))
         self.Fig_save_btn.setText(QCoreApplication.translate("MainWindow", u"Save", None))
         self.labelBoxBlenderInstalation_2.setText(QCoreApplication.translate("MainWindow", u"Export Name", None))
         self.Export_name_line.setText("")
@@ -2104,18 +2104,18 @@ class Ui_MainWindow(object):
         self.Export_folder_line.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Choose the export folder", None))
         self.node_sum.setText(QCoreApplication.translate("MainWindow", u"Nodes count", None))
-        self.IFM_sum.setText(QCoreApplication.translate("MainWindow", u"IFM mean", None))
-        self.gap_sum.setText(QCoreApplication.translate("MainWindow", u"Gap mean", None))
-        self.sd_sum.setText(QCoreApplication.translate("MainWindow", u"SD mean", None))
+        self.IFM_sum.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>IFM distance</p></body></html>", None))
+        self.gap_sum.setText(QCoreApplication.translate("MainWindow", u"Gap distance", None))
+        self.sd_sum.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Sliding distance</p></body></html>", None))
         self.x_sum.setText(QCoreApplication.translate("MainWindow", u"X axis angle", None))
         self.y_sum.setText(QCoreApplication.translate("MainWindow", u"Y axis angle", None))
         self.z_sum.setText(QCoreApplication.translate("MainWindow", u"Z axis angle", None))
         self.theta_sum.setText(QCoreApplication.translate("MainWindow", u"Theta", None))
-        self.euler_sum.setText(QCoreApplication.translate("MainWindow", u"Euler angle", None))
+        self.euler_sum.setText(QCoreApplication.translate("MainWindow", u"Euler angle (XYZ)", None))
         self.Export_label.setText("")
         self.btn_message.setText(QCoreApplication.translate("MainWindow", u"Message", None))
         self.btn_print.setText(QCoreApplication.translate("MainWindow", u"Print", None))
         self.creditsLabel.setText(QCoreApplication.translate("MainWindow", u"By: Sun Jun", None))
-        self.version.setText(QCoreApplication.translate("MainWindow", u"v1.1", None))
+        self.version.setText(QCoreApplication.translate("MainWindow", u"v1.2", None))
     # retranslateUi
 

@@ -2,6 +2,7 @@
 import sys
 import os
 import pandas as pd
+import webbrowser
 
 # IMPORT / GUI AND MODULES AND WIDGETS
 # ///////////////////////////////////////////////////////////////
@@ -36,7 +37,8 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         global widgets
         widgets = self.ui
-        global dfa, dfb
+        global data_series_1, data_series_2, cal_status
+        cal_status = 'Cleared'
         # FIND DISPLAY BROWSER OBJECT AND SET AS ATTRIBUTE
         # ///////////////////////////////////////////////////////////////
         self.Display_browser = self.findChild(QTextBrowser, "Display_browser")
@@ -110,6 +112,10 @@ class MainWindow(QMainWindow):
         # SHOW FIGURE
         widgets.stackedWidget.currentChanged.connect(self.Page_fun)
 
+        # MISC
+        widgets.btn_more.clicked.connect(self.buttonClick)
+        widgets.btn_message.clicked.connect(self.buttonClick)
+
         # SHOW APP
         # ///////////////////////////////////////////////////////////////
         self.show()
@@ -144,62 +150,52 @@ class MainWindow(QMainWindow):
 
     def IFM_Cal(self):
         self.Display_browser.clear()
-        global dfa, dfb
+        np.set_printoptions(precision=3)
+        global data_series_1, data_series_2
+
         # READING FILE
         fileName = widgets.Input_line.text()
-        c = IFM_Calculation_GUI.check(fileName)
-        if c == "OK":
-            dfa = IFM_Calculation_GUI.import_data(fileName, '1')
-            dfb = IFM_Calculation_GUI.import_data(fileName, '2')
-            # Calculate IFM
+        status_1, data_series_1 = IFM_Calculation_GUI.import_data(
+            fileName, 'Data_series_1')
+        status_2, data_series_2 = IFM_Calculation_GUI.import_data(
+            fileName, 'Data_series_2')
+        # Calculate IFM
+        if status_1 == status_2 == 'Success':
             try:
                 float(widgets.Mesh_line.text())
                 global output, row3, angle_x, angle_y, angle_z1, theta, Eulerangles, IFM_summary, Gap_summary, SD_summary, cal_status
                 Accu = widgets.Mesh_line.text()
                 output = None
                 try:
-                    df_matched = pairing(dfa, dfb)
+                    df_matched, reverse = pairing(data_series_1, data_series_2)
                     row3 = len(df_matched)
                     output = IFM_Calculation(df_matched)
                     df_max = calculate_extreme_values(df_matched, float(Accu))
-                    angle_x_0 = calculate_angle(np.array((df_max.iat[0, 2] - df_max.iat[1, 2], df_max.iat[0, 3] - df_max.iat[1, 3])),
-                                              np.array((df_max.iat[0, 9] - df_max.iat[1, 9], df_max.iat[0, 10] - df_max.iat[1, 10])))
-                    angle_x_1 = calculate_angle(np.array((df_max.iat[0, 5] - df_max.iat[1, 5], df_max.iat[0, 6] - df_max.iat[1, 6])),
-                                              np.array((df_max.iat[0, 12] - df_max.iat[1, 12], df_max.iat[0, 13] - df_max.iat[1, 13])))
-                    angle_y_0 = calculate_angle(np.array((df_max.iat[2, 1] - df_max.iat[3, 1], df_max.iat[2, 3] - df_max.iat[3, 3])),
-                                              np.array((df_max.iat[2, 8] - df_max.iat[3, 8], df_max.iat[2, 10] - df_max.iat[3, 10])))
-                    angle_y_1 = calculate_angle(np.array((df_max.iat[2, 4] - df_max.iat[3, 4], df_max.iat[2, 6] - df_max.iat[3, 6])),
-                                              np.array((df_max.iat[2, 11] - df_max.iat[3, 11], df_max.iat[2, 13] - df_max.iat[3, 13])))
-                    angle_z1_0 = calculate_angle(np.array((df_max.iat[2, 1] - df_max.iat[3, 1], df_max.iat[2, 2] - df_max.iat[3, 2])),
-                                               np.array((df_max.iat[2, 8] - df_max.iat[3, 8], df_max.iat[2, 9] - df_max.iat[3, 9])))
-                    angle_z1_1 = calculate_angle(np.array((df_max.iat[2, 4] - df_max.iat[3, 4], df_max.iat[2, 5] - df_max.iat[3, 5])),
-                                               np.array((df_max.iat[2, 11] - df_max.iat[3, 11], df_max.iat[2, 12] - df_max.iat[3, 12])))
-                    angle_z2_0 = calculate_angle(np.array((df_max.iat[0, 1] - df_max.iat[1, 1], df_max.iat[0, 2] - df_max.iat[1, 2])),
-                                               np.array((df_max.iat[0, 8] - df_max.iat[1, 8], df_max.iat[0, 9] - df_max.iat[1, 9])))
-                    angle_z2_1 = calculate_angle(np.array((df_max.iat[0, 4] - df_max.iat[1, 4], df_max.iat[0, 5] - df_max.iat[1, 5])),
-                                               np.array((df_max.iat[0, 11] - df_max.iat[1, 11], df_max.iat[0, 12] - df_max.iat[1, 12])))
-                    angle_x = angle_x_1 - angle_x_0
-                    angle_y = angle_y_1 - angle_y_0
-                    angle_z1 = angle_z1_1 - angle_z1_0
-                    angle_z2 = angle_z2_1 - angle_z2_0
+                    angle_x = calculate_angle(df_max, 0, 1, 2, 3, reverse)
+                    angle_y = calculate_angle(df_max, 2, 3, 1, 3, reverse)
+                    angle_z1 = calculate_angle(df_max, 2, 3, 1, 2, reverse)
+                    angle_z2 = calculate_angle(df_max, 0, 1, 1, 2, reverse)
                     print("angle_x = " + str(angle_x))
                     print("angle_y = " + str(angle_y))
                     print("angle_z1 = " + str(angle_z1))
                     print("angle_z2 = " + str(angle_z2))
-                    normal_a = calculate_normal(dfa)
-                    normal_b = calculate_normal(dfb)
+                    normal_a = calculate_normal(data_series_1)
+                    normal_b = calculate_normal(data_series_2)
                     if np.dot(normal_a, normal_b) < 0:
                         normal_b = -normal_b
                     theta = np.degrees(calculate_theta(normal_a, normal_b))
                     print("Theta of two planes = ", theta)
-                    R = calculate_rotation_matrix(normal_a, normal_b)
-                    Eulerangles = calculate_eulerangles(R)
-                    IFM_summary = output['IFM (mm)'].describe()
-                    Gap_summary = output['Detachment (mm)'].describe()
-                    SD_summary = output['Displacement (mm)'].describe()
-                    self.Displacement_plot = plot(output, 'Displacement (mm)')
-                    self.Detachement_plot = plot(output, 'Detachment (mm)')
-                    self.IFM_plot = plot(output, 'IFM (mm)')
+                    R, Eulerangles = calculate_matrix_euler(df_max, reverse)
+                    print("Relative rotation matrix = \n", R)
+                    print("Euler angles = ", np.round(Eulerangles, 3))
+                    IFM_summary = output['IFM distance (mm)'].describe()
+                    Gap_summary = output['Gap distance (mm)'].describe()
+                    SD_summary = output['Sliding distance (mm)'].describe()
+                    self.Sliding_distance_plot = plot(
+                        output, 'Sliding distance (mm)', reverse)
+                    self.Gap_distance_plot = plot(
+                        output, 'Gap distance (mm)', reverse)
+                    self.IFM_plot = plot(output, 'IFM distance (mm)', reverse)
                     cal_status = 'Success'
                 except Exception as e:
                     # CREATE QMessageBox INSTANCE
@@ -219,7 +215,8 @@ class MainWindow(QMainWindow):
             # CREATE QMessageBox INSTANCE
             msg_box = QMessageBox()
             msg_box.setIcon(QMessageBox.Critical)
-            msg_box.setText(c)
+            msg_box.setText('data_series_1: ' + status_1 +
+                            '\n' + 'data_series_2: ' + status_2)
             msg_box.setWindowTitle("Error")
             msg_box.exec_()
 
@@ -235,7 +232,7 @@ class MainWindow(QMainWindow):
 
     def Fig_SD_fun(self):
         if cal_status == 'Success':
-            self.canvas = FigureCanvas(self.Displacement_plot)
+            self.canvas = FigureCanvas(self.Sliding_distance_plot)
             # Clear all plots
             for i in range(self.gridlayout.count()):
                 self.gridlayout.itemAt(i).widget().deleteLater()
@@ -244,7 +241,7 @@ class MainWindow(QMainWindow):
 
     def Fig_Gap_fun(self):
         if cal_status == 'Success':
-            self.canvas = FigureCanvas(self.Detachement_plot)
+            self.canvas = FigureCanvas(self.Gap_distance_plot)
             # Clear all plots
             for i in range(self.gridlayout.count()):
                 self.gridlayout.itemAt(i).widget().deleteLater()
@@ -280,7 +277,7 @@ class MainWindow(QMainWindow):
                 widgets.y_sum_text.setText(str(angle_y) + ' °')
                 widgets.z_sum_text.setText(str(angle_z1) + ' °')
                 widgets.theta_sum_text.setText(str(theta) + ' °')
-                widgets.euler_sum_text.setText(str(Eulerangles))
+                widgets.euler_sum_text.setText(str(np.round(Eulerangles, 3)))
             else:
                 widgets.node_sum_text.clear()
                 widgets.IFM_sum_text.clear()
@@ -387,6 +384,15 @@ class MainWindow(QMainWindow):
             fileName = QFileDialog.getSaveFileName(
                 self, 'Save file', 'C:\\', "PNG files (*.png)")
             self.canvas.figure.savefig(fileName[0])
+
+        # GOTO GITHUB
+        if btnName == "btn_more":
+            webbrowser.open_new_tab("https://github.com/Soramuse")
+
+        # MAIL MESSAGE
+        if btnName == "btn_message":
+            webbrowser.open(
+                'mailto:sunjun9512@outlook.com?subject=IFM Calculator&body=Hi, Sora!')
 
         # PRINT BTN NAME
         # print(f'Button "{btnName}" pressed!')
