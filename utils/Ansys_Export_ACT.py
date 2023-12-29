@@ -9,7 +9,7 @@ ANALYSES_COUNT = Model.Analyses.Count
 COORDINATE_OUTPUT_DIR = wbjn.ExecuteCommand(ExtAPI,cmd)
 print('Current output directory: ' + COORDINATE_OUTPUT_DIR)
 
-for i in range(GEOM.Bodies):
+for i in range(len(GEOM.Children)):
     GEOM.Children[i].Visible = True
 
 def create_coordinate_results(analysis):
@@ -88,3 +88,4 @@ def create_coordinate_results(analysis):
 for x in range(ANALYSES_COUNT):
     analysis = Model.Analyses[x]
     create_coordinate_results(analysis)
+
