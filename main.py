@@ -142,11 +142,12 @@ class MainWindow(QMainWindow):
         self.gridlayout = QVBoxLayout(self.fig_widget)
 
     def input_file(self):
+        global folder_path
         # GET FILE NAME
-        fileName = QFileDialog.getExistingDirectory(
+        folder_path = QFileDialog.getExistingDirectory(
             self, 'Choose working directory', 'C:\\')
         # SET TEXT
-        widgets.Input_line.setText(str(fileName))
+        widgets.Input_line.setText(str(folder_path))
 
     def IFM_Cal(self):
         self.Display_browser.clear()
@@ -154,11 +155,11 @@ class MainWindow(QMainWindow):
         global data_series_1, data_series_2
 
         # READING FILE
-        fileName = widgets.Input_line.text()
+        folder_path = widgets.Input_line.text()
         status_1, data_series_1 = IFM_Calculation_GUI.import_data(
-            fileName, 'Data_series_1')
+            folder_path, 'Data_series_1')
         status_2, data_series_2 = IFM_Calculation_GUI.import_data(
-            fileName, 'Data_series_2')
+            folder_path, 'Data_series_2')
         # Calculate IFM
         if status_1 == status_2 == 'Success':
             try:
@@ -300,7 +301,7 @@ class MainWindow(QMainWindow):
         else:
             ExportName = widgets.Export_name_line.text()
             ExportFolder = QFileDialog.getExistingDirectory(
-                self, 'Choose working directory', 'C:\\')
+                self, 'Choose working directory', folder_path)
             # SET TEXT
             widgets.Export_folder_line.setText(str(ExportFolder))
             status = export(ExportFolder, ExportName, output, row3,
@@ -367,7 +368,7 @@ class MainWindow(QMainWindow):
         # SAVE LOG
         if btnName == "Display_save_btn":
             fileName = QFileDialog.getSaveFileName(
-                self, 'Save file', 'C:\\', "Text files (*.txt)")
+                self, 'Save file', folder_path, "Text files (*.txt)")
             with open(fileName[0], 'w') as f:
                 my_text = self.Display_browser.toPlainText()
                 f.write(my_text)
@@ -382,7 +383,7 @@ class MainWindow(QMainWindow):
         # SAVE FIGURE
         if btnName == "Fig_save_btn":
             fileName = QFileDialog.getSaveFileName(
-                self, 'Save file', 'C:\\', "PNG files (*.png)")
+                self, 'Save file', folder_path, "PNG files (*.png)")
             self.canvas.figure.savefig(fileName[0])
 
         # GOTO GITHUB
