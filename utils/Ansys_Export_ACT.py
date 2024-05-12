@@ -10,7 +10,8 @@ COORDINATE_OUTPUT_DIR = wbjn.ExecuteCommand(ExtAPI,cmd)
 print('Current output directory: ' + COORDINATE_OUTPUT_DIR)
 
 for i in range(len(GEOM.Children)):
-    GEOM.Children[i].Visible = True
+    if str(GEOM.Children[i].DataModelObjectCategory)=='Part':
+        GEOM.Children[i].Visible = True
 
 def create_coordinate_results(analysis):
     named_selections = Model.NamedSelections
